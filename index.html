@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>クリック連打ゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      margin-top: 50px;
+    }
+    button {
+      font-size: 24px;
+      padding: 20px 40px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    #score, #time {
+      font-size: 20px;
+      margin: 10px;
+    }
+
+    /* 共通オーバーレイ */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    /* ゲームオーバー */
+    #gameover img {
+      max-width: 80%;
+    }
+
+    /* 成功動画 */
+    #success video {
+      width: 90%;
+      max-height: 80%;
+    }
+
+    .overlay p {
+      color: white;
+      font-size: 24px;
+      margin: 20px;
+    }
+
+    .retry {
+      font-size: 20px;
+      padding: 10px 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>クリック連打ゲーム</h1>
+  <p>10秒以内に50回以上クリックしてください</p>
+
+  <div id="time">残り時間：10秒</div>
+  <div id="score">スコア：0</div>
+
+  <button onclick="clickButton()">クリック！</button>
+
+  <!-- 失敗画面 -->
+  <div id="gameover" class="overlay">
+    <img src="gameover.gif" alt="GAME OVER">
+    <p>失敗……クリック数が足りません</p>
+    <button class="retry" onclick="retryGame()">再挑戦</button>
+  </div>
+
+  <!-- 成功画面 -->
+  <div id="success" class="overlay">
+    <video id="congratsVideo" src="congrats.mov"></video>
+    <p>おめでとうございます！</p>
+    <button class="retry" onclick="retryGame()">もう一回遊ぶ</button>
+  </div>
+
+  <!-- 効果音 -->
+  <audio id="gmovSound" src="gmov.wav"></audio>
+
+  <script>
+    let score = 0;
+    let time = 10;
+    let gameStarted = false;
+    let timer = null;
+
+    function clickButton() {
+      if (!gameStarted) {
+        gameStarted = true;
+        startTimer();
+      }
+      if (time > 0) {
+        score++;
+        document.getElementById("score").textContent = "スコア：" + score;
+      }
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        time--;
+        document.getElementById("time").textContent = "残り時間：" + time + "秒";
+        if (time <= 0) {
+          clearInterval(timer);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      if (score < 50) {
+        const sound = document.getElementById("gmovSound");
+        document.getElementById("gameover").style.display = "flex";
+        sound.currentTime = 0;
+        sound.play();
+      } else {
+        const video = document.getElementById("congratsVideo");
+        document.getElementById("success").style.display = "flex";
+        video.currentTime = 0;
+        video.play();
+      }
+    }
+
+    function retryGame() {
+      // タイマー停止
+      if (timer) clearInterval(timer);
+
+      // 状態リセット
+      score = 0;
+      time = 10;
+      gameStarted = false;
+
+      document.getElementById("score").textContent = "スコア：0";
+      document.getElementById("time").textContent = "残り時間：10秒";
+
+      // 画面非表示
+      document.getElementById("gameover").style.display = "none";
+      document.getElementById("success").style.display = "none";
+
+      // 音・動画停止
+      const sound = document.getElementById("gmovSound");
+      sound.pause();
+      sound.currentTime = 0;
+
+      const video = document.getElementById("congratsVideo");
+      video.pause();
+      video.currentTime = 0;
+    }
+  </script>
+
+</body>
+</html>
